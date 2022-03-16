@@ -25,7 +25,7 @@ namespace CrayonFirstHomework
         // File variables:
         private string audioName = "mic.wav";
         private string videoName = "video.mp4";
-        private string fileName = "FinalVideo.mp4";
+        private string finalName = "FinalVideo.mp4";
 
         // Time variable:
         Stopwatch watch = new Stopwatch();
@@ -130,7 +130,7 @@ namespace CrayonFirstHomework
 
         public void RecordAudio()
         {
-            NativeMethods.record("open new Type waveaudio Ailias recsound", "", 0, 0);
+            NativeMethods.record("open new Type waveaudio Alias recsound", "", 0, 0);
             NativeMethods.record("record recsound", "", 0, 0);
         }
 
@@ -138,7 +138,7 @@ namespace CrayonFirstHomework
         {
             using (VideoFileWriter vfWriter = new VideoFileWriter())
             {
-                vfWriter.Open(outputPath + "//" + videoName, width, height, framRate, VideoCodec.MPEG4);
+                vfWriter.Open(outputPath + "\\" + videoName, width, height, framRate, VideoCodec.MPEG4);
 
                 foreach (string imageLoc in inputImageSequence)
                 {
@@ -161,7 +161,39 @@ namespace CrayonFirstHomework
 
         private void CombineVideoAndAudio(string video, string audio)
         {
+            string command = $"/c ffmpeg -i \"{video}\" -i \"{audio}\" -shortest {finalName}";
+            ProcessStartInfo startinfo = new ProcessStartInfo
+            {
+                CreateNoWindow = false,
+                FileName = "cmd.exe",
+                WorkingDirectory = outputPath,
+                Arguments = command
+            };
 
+            using (Process exeproc = Process.Start(startinfo))
+            {
+                exeproc.WaitForExit();
+            }
         }
+
+        public void Stop()
+        {
+            watch.Stop();
+
+            int width = bounds.Width;
+            int height = bounds.Height;
+            int framerate = 10;
+
+            SaveAudio();
+
+            SaveVideo(width, height, framerate);
+
+            CombineVideoAndAudio(videoName, audioName);
+
+            DeletePath(tempPath);
+
+            DeleteFilesExcept(outputPath, outputPath + "\\" + finalName);
+        }
+
     }
 }
